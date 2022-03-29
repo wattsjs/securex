@@ -1,0 +1,384 @@
+{
+  "workflow": {
+    "unique_name": "definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd",
+    "name": "Webex Teams - Post Chart to Room",
+    "title": "Webex Teams - Post Chart to Room",
+    "type": "generic.workflow",
+    "base_type": "workflow",
+    "variables": [
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "output",
+          "name": "Response Body",
+          "type": "datatype.string",
+          "is_required": false,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S25O1ZRY4704dtq74c3ns2zebEw9ajEBW",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.secure_string",
+        "properties": {
+          "value": "",
+          "scope": "input",
+          "name": "Chart Data",
+          "type": "datatype.secure_string",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01VZ0IBCGPG364sYnzP9O65xOjKo2Ee9U5J",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "output",
+          "name": "Message ID",
+          "type": "datatype.string",
+          "is_required": false,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S25O1ZRXO8R4Gn1k58any2ffHDlHmjaRv",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "input",
+          "name": "Message",
+          "type": "datatype.string",
+          "description": "A plain text message without markdown. If you provide a value for this field as well as the markdown message field, the markdown message will be displayed for clients that support it and this message will be shown for clients that don't\n\nInformation about formatting messages: https://developer.webex.com/docs/api/basics#formatting-messages",
+          "is_required": false,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S25O1ZRYDDC1CPjvy8yM8TZpnPQ75QTeQ",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.secure_string",
+        "properties": {
+          "value": "",
+          "scope": "input",
+          "name": "Access Token",
+          "type": "datatype.secure_string",
+          "description": "The access token to use to authenticate to the Webex Teams API",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S25O1ZRXDEU3DVB122QjiWBBC2q0Vv4jt",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "input",
+          "name": "Markdown Message",
+          "type": "datatype.string",
+          "description": "A message that includes markdown. If you provide a value for this field as well as the message field, the markdown message will be displayed for clients that support it and the plain text message will be shown for clients that don't\n\nInformation about formatting messages: https://developer.webex.com/docs/api/basics#formatting-messages",
+          "is_required": false,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S25O1ZRXWMP0tHGDsz4z7np2TF6iRLWfa",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "input",
+          "name": "Room ID",
+          "type": "datatype.string",
+          "description": "The ID of the room to post the message to",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S25O1ZRYNA61gCzmzpq7Xmx5KRtlxgRsI",
+        "object_type": "variable_workflow"
+      }
+    ],
+    "properties": {
+      "atomic": {
+        "atomic_group": "Cisco Webex Teams",
+        "is_atomic": true
+      },
+      "delete_workflow_instance": false,
+      "description": "Posts graph to a Webex Teams room using the QuickChart API.\n\nTarget: HTTP endpoint for \"webexapis.com\"\n\nAccount Key: None (uses an access token)\n\nSteps:\n[] Build the JSON payload\n[] Validate that either a message or markdown message was provided\n[] Send the request to the Webex Teams API\n[] Check if the request was successful and set ouput variables\n\nMore information about this API: https://developer.webex.com/docs/api/v1/messages/create-a-message",
+      "display_name": "Webex Teams - Post Chart to Room",
+      "runtime_user": {
+        "override_target_runtime_user": false,
+        "specify_on_workflow_start": false,
+        "target_default": true
+      },
+      "target": {
+        "target_type": "web-service.endpoint",
+        "specify_on_workflow_start": true
+      }
+    },
+    "object_type": "definition_workflow",
+    "actions": [
+      {
+        "unique_name": "definition_activity_01S25O23CR67W54V25cJwi0ahClII8l9kEw",
+        "name": "Execute Python Script",
+        "title": "Build the JSON payload",
+        "type": "python3.script",
+        "base_type": "activity",
+        "properties": {
+          "action_timeout": 180,
+          "continue_on_failure": false,
+          "display_name": "Build the JSON payload",
+          "script": "import sys,json\nimport urllib.parse\n\nBASE_URI = \"https://quickchart.io/chart?c=\"\n\n# Make sure a message was provided\nhasMessage = False\nif sys.argv[4] != \"\":\n    hasMessage = True\n\n# Encode the chart data\nchart_data = urllib.parse.quote(sys.argv[4])\n\nchart_uri = BASE_URI + chart_data\n\n# Start building the JSON object to send to Webex\nwebexObject = {\n  \"files\": chart_uri,\n\t\"roomId\": sys.argv[1],\n  \"text\": \"\",\n  \"markdown\": \"\"\n}\n\nif sys.argv[2] and not sys.argv[3]:\n    webexObject[\"text\"] = sys.argv[2]\nif sys.argv[3]:\n    webexObject[\"markdown\"] = sys.argv[3]\n\n# If any new lines were escaped, unescape them (or they won't work)\nwebexObject[\"text\"] = webexObject[\"text\"].replace(\"\\\\n\", \"\\n\")\nwebexObject[\"markdown\"] = webexObject[\"markdown\"].replace(\"\\\\n\", \"\\n\")\n\n# Encode the payload to JSON\nwebexPayload = json.dumps(webexObject)",
+          "script_arguments": [
+            "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01S25O1ZRYNA61gCzmzpq7Xmx5KRtlxgRsI$",
+            "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01S25O1ZRYDDC1CPjvy8yM8TZpnPQ75QTeQ$",
+            "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01S25O1ZRXWMP0tHGDsz4z7np2TF6iRLWfa$",
+            "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01VZ0IBCGPG364sYnzP9O65xOjKo2Ee9U5J$"
+          ],
+          "script_queries": [
+            {
+              "script_query": "hasMessage",
+              "script_query_name": "hasMessage",
+              "script_query_type": "secure_string"
+            },
+            {
+              "script_query": "webexPayload",
+              "script_query_name": "webexPayload",
+              "script_query_type": "secure_string"
+            }
+          ],
+          "skip_execution": false
+        },
+        "object_type": "definition_activity"
+      },
+      {
+        "unique_name": "definition_activity_01S25O24B7KMQ59fN2Pa7QodrTeh1XlwlqY",
+        "name": "Condition Block",
+        "title": "Was a message provided?",
+        "type": "logic.if_else",
+        "base_type": "activity",
+        "properties": {
+          "continue_on_failure": false,
+          "display_name": "Was a message provided?",
+          "skip_execution": false
+        },
+        "object_type": "definition_activity",
+        "blocks": [
+          {
+            "unique_name": "definition_activity_01S25O25ABSNF2d175i8QnEyZHq3eSkQIkK",
+            "name": "Condition Branch",
+            "title": "No",
+            "type": "logic.condition_block",
+            "base_type": "activity",
+            "properties": {
+              "condition": {
+                "left_operand": "$activity.definition_activity_01S25O23CR67W54V25cJwi0ahClII8l9kEw.output.script_queries.hasMessage$",
+                "operator": "eq",
+                "right_operand": false
+              },
+              "continue_on_failure": false,
+              "display_name": "No",
+              "skip_execution": false
+            },
+            "object_type": "definition_activity",
+            "actions": [
+              {
+                "unique_name": "definition_activity_01S25O26C0CIX4MEMgWW27Esz4fClLAJCBV",
+                "name": "Completed",
+                "title": "Failed",
+                "type": "logic.completed",
+                "base_type": "activity",
+                "properties": {
+                  "completion_type": "failed-completed",
+                  "continue_on_failure": false,
+                  "display_name": "Failed",
+                  "result_message": "A markdown message or plain text message (or both) is required",
+                  "skip_execution": false
+                },
+                "object_type": "definition_activity"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "unique_name": "definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf",
+        "name": "HTTP Request",
+        "title": "Post message",
+        "type": "web-service.http_request",
+        "base_type": "activity",
+        "properties": {
+          "accept": "application/json",
+          "action_timeout": 180,
+          "allow_auto_redirect": true,
+          "body": "$activity.definition_activity_01S25O23CR67W54V25cJwi0ahClII8l9kEw.output.script_queries.webexPayload$",
+          "content_type": "application/json",
+          "continue_on_error_status_code": true,
+          "continue_on_failure": false,
+          "custom_headers": [
+            {
+              "name": "Authorization",
+              "value": "Bearer $workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01S25O1ZRXDEU3DVB122QjiWBBC2q0Vv4jt$"
+            }
+          ],
+          "display_name": "Post message",
+          "method": "POST",
+          "relative_url": "/v1/messages",
+          "runtime_user": {
+            "override_target_runtime_user": false,
+            "target_default": true
+          },
+          "skip_execution": false,
+          "target": {
+            "override_workflow_target": false,
+            "override_workflow_target_group_criteria": false,
+            "use_workflow_target": true,
+            "use_workflow_target_group": false
+          }
+        },
+        "object_type": "definition_activity"
+      },
+      {
+        "unique_name": "definition_activity_01S25O28EDGHB2T2jgW03QDsClpjxNTCnGG",
+        "name": "Condition Block",
+        "title": "Was the request successful?",
+        "type": "logic.if_else",
+        "base_type": "activity",
+        "properties": {
+          "continue_on_failure": false,
+          "display_name": "Was the request successful?",
+          "skip_execution": false
+        },
+        "object_type": "definition_activity",
+        "blocks": [
+          {
+            "unique_name": "definition_activity_01S25O298PTY65gG2oLkspwZqOCUWfLfItk",
+            "name": "Condition Branch",
+            "title": "Yes/200",
+            "type": "logic.condition_block",
+            "base_type": "activity",
+            "properties": {
+              "condition": {
+                "left_operand": "$activity.definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf.output.status_code$",
+                "operator": "eq",
+                "right_operand": 200
+              },
+              "continue_on_failure": false,
+              "display_name": "Yes/200",
+              "skip_execution": false
+            },
+            "object_type": "definition_activity",
+            "actions": [
+              {
+                "unique_name": "definition_activity_01S25O2AJO9VR31yv3AZzmJwHUoYMPui91M",
+                "name": "JSONPath Query",
+                "title": "Extract the message ID",
+                "type": "corejava.jsonpathquery",
+                "base_type": "activity",
+                "properties": {
+                  "action_timeout": 180,
+                  "continue_on_failure": false,
+                  "display_name": "Extract the message ID",
+                  "input_json": "$activity.definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf.output.response_body$",
+                  "jsonpath_queries": [
+                    {
+                      "jsonpath_query": "$.id",
+                      "jsonpath_query_name": "id",
+                      "jsonpath_query_type": "string"
+                    }
+                  ],
+                  "skip_execution": false
+                },
+                "object_type": "definition_activity"
+              },
+              {
+                "unique_name": "definition_activity_01S25O2BU9UQM3lUoTbFAtouZjkffitcMjM",
+                "name": "Set Variables",
+                "title": "Set output variables",
+                "type": "core.set_multiple_variables",
+                "base_type": "activity",
+                "properties": {
+                  "continue_on_failure": false,
+                  "display_name": "Set output variables",
+                  "skip_execution": false,
+                  "variables_to_update": [
+                    {
+                      "variable_to_update": "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.output.variable_workflow_01S25O1ZRY4704dtq74c3ns2zebEw9ajEBW$",
+                      "variable_value_new": "$activity.definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf.output.response_body$"
+                    },
+                    {
+                      "variable_to_update": "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.output.variable_workflow_01S25O1ZRXO8R4Gn1k58any2ffHDlHmjaRv$",
+                      "variable_value_new": "$activity.definition_activity_01S25O2AJO9VR31yv3AZzmJwHUoYMPui91M.output.jsonpath_queries.id$"
+                    }
+                  ]
+                },
+                "object_type": "definition_activity"
+              }
+            ]
+          },
+          {
+            "unique_name": "definition_activity_01S25O2CWPR841ZjmSGnIeJSj9D28Izqsiy",
+            "name": "Condition Branch",
+            "title": "Failed",
+            "type": "logic.condition_block",
+            "base_type": "activity",
+            "properties": {
+              "condition": {
+                "left_operand": {
+                  "left_operand": "$activity.definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf.output.status_code$",
+                  "operator": "ne",
+                  "right_operand": 200
+                },
+                "operator": "and",
+                "right_operand": {
+                  "left_operand": "$activity.definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf.output.status_code$",
+                  "operator": "ne",
+                  "right_operand": 204
+                }
+              },
+              "continue_on_failure": false,
+              "display_name": "Failed",
+              "skip_execution": false
+            },
+            "object_type": "definition_activity",
+            "actions": [
+              {
+                "unique_name": "definition_activity_01S25O2DSZYZK5wuMko6kYaF5clte1ucYqA",
+                "name": "Failed",
+                "title": "Failed",
+                "type": "logic.completed",
+                "base_type": "activity",
+                "properties": {
+                  "completion_type": "failed-completed",
+                  "continue_on_failure": false,
+                  "display_name": "Failed",
+                  "result_message": "Failed to post Webex Teams message:\n\nStatus code: $activity.definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf.output.status_code$\nError message: $activity.definition_activity_01S25O27DHHGB3wk9dpTKO34XdhYJOSoeaf.output.response_body$",
+                  "skip_execution": false
+                },
+                "object_type": "definition_activity"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "categories": [
+      "category_01QCNAT86CWY40emnkjR6b1RzgUGq5LVfRF"
+    ]
+  },
+  "categories": {
+    "category_01QCNAT86CWY40emnkjR6b1RzgUGq5LVfRF": {
+      "unique_name": "category_01QCNAT86CWY40emnkjR6b1RzgUGq5LVfRF",
+      "name": "webex",
+      "title": "webex",
+      "type": "basic.category",
+      "base_type": "category",
+      "category_type": "custom",
+      "object_type": "category"
+    }
+  }
+}
