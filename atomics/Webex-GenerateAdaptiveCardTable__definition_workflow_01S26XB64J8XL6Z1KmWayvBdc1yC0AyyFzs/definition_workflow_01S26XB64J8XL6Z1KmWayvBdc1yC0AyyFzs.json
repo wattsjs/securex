@@ -1,0 +1,98 @@
+{
+  "workflow": {
+    "unique_name": "definition_workflow_01S26XB64J8XL6Z1KmWayvBdc1yC0AyyFzs",
+    "name": "Webex Teams - Generate Adaptive Card Table",
+    "title": "Webex Teams - Generate Adaptive Card Table",
+    "type": "generic.workflow",
+    "base_type": "workflow",
+    "variables": [
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "output",
+          "name": "Output",
+          "type": "datatype.string",
+          "is_required": false,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S27CVQ886WS6LtMkPskhH2lGjglZnyAxD",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "input",
+          "name": "Data",
+          "type": "datatype.string",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S27BXL7UH5D06euO8H1lKhJjwrhjPjp3H",
+        "object_type": "variable_workflow"
+      }
+    ],
+    "properties": {
+      "atomic": {
+        "atomic_group": "Cisco Webex Teams",
+        "is_atomic": true
+      },
+      "delete_workflow_instance": false,
+      "display_name": "Webex Teams - Generate Adaptive Card Table",
+      "runtime_user": {
+        "target_default": true
+      },
+      "target": {
+        "no_target": true
+      }
+    },
+    "object_type": "definition_workflow",
+    "actions": [
+      {
+        "unique_name": "definition_activity_01S27AR8OIXTA3nis5idS6aHhVI2I6c1YD7",
+        "name": "Execute Python Script",
+        "title": "Execute Python Script",
+        "type": "python3.script",
+        "base_type": "activity",
+        "properties": {
+          "action_timeout": 180,
+          "continue_on_failure": false,
+          "display_name": "Execute Python Script",
+          "script": "import json\n\ndef textblock(text):\n    return {\n        \"type\": \"TextBlock\",\n        \"text\": str(text),\n        \"wrap\": True,\n    }\n\n# Data in the format [[header, header, header], [column, column, column], [column, column, column]]\n\n\nbase_row = {\n    \"type\": \"TextBlock\",\n    \"text\": \"New TextBlock\",\n    \"wrap\": True,\n}\nbase_column = {\n    \"type\": \"Column\",\n    \"width\": \"stretch\",\n    \"items\": [],\n}\n\nbase = {\"contentType\": \"application/vnd.microsoft.card.adaptive\",  \"content\":{\n    \"type\": \"AdaptiveCard\",\n    \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\n    \"version\": \"1.2\",\n    \"body\": [\n        {\n            \"type\": \"ColumnSet\",\n            \"columns\": [],\n        }\n    ],\n}}\n\ndata = $workflow.definition_workflow_01S26XB64J8XL6Z1KmWayvBdc1yC0AyyFzs.input.variable_workflow_01S27BXL7UH5D06euO8H1lKhJjwrhjPjp3H$\n\nnum_columns = len(data[0])\nfor i in range(0, num_columns):\n    column_data = [textblock(text) for text in [d[i] for d in data]]\n    # Make header bold\n    column_data[0][\"weight\"] = \"Bolder\"\n    this_column = base_column.copy()\n    this_column[\"items\"] = column_data\n    base[\"content\"][\"body\"][0][\"columns\"].append(this_column)\n\nbase = json.dumps(base)\n",
+          "script_queries": [
+            {
+              "script_query": "base",
+              "script_query_name": "card",
+              "script_query_type": "string"
+            }
+          ],
+          "skip_execution": false
+        },
+        "object_type": "definition_activity"
+      },
+      {
+        "unique_name": "definition_activity_01S27F47VZ64W2QnreWrSyfr4nCWnMeJq8w",
+        "name": "Set Variables",
+        "title": "Set Variables",
+        "type": "core.set_multiple_variables",
+        "base_type": "activity",
+        "properties": {
+          "continue_on_failure": false,
+          "display_name": "Set Variables",
+          "skip_execution": false,
+          "variables_to_update": [
+            {
+              "variable_to_update": "$workflow.definition_workflow_01S26XB64J8XL6Z1KmWayvBdc1yC0AyyFzs.output.variable_workflow_01S27CVQ886WS6LtMkPskhH2lGjglZnyAxD$",
+              "variable_value_new": "$activity.definition_activity_01S27AR8OIXTA3nis5idS6aHhVI2I6c1YD7.output.script_queries.card$"
+            }
+          ]
+        },
+        "object_type": "definition_activity"
+      }
+    ],
+    "categories": [
+      "category_1BMfMXSnJMyt5Ihqi7rWJr5N8cf"
+    ]
+  }
+}
