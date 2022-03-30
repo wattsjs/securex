@@ -9,19 +9,6 @@
       {
         "schema_id": "datatype.string",
         "properties": {
-          "value": "2980618",
-          "scope": "static",
-          "name": "Umbrella Organization ID",
-          "type": "datatype.string",
-          "is_required": true,
-          "is_invisible": false
-        },
-        "unique_name": "variable_workflow_01VZ2NWI6H3UL1fLY8uJXnalcfOu4TSEoXA",
-        "object_type": "variable_workflow"
-      },
-      {
-        "schema_id": "datatype.string",
-        "properties": {
           "value": "7",
           "scope": "static",
           "name": "Days To Search",
@@ -31,6 +18,32 @@
           "is_invisible": false
         },
         "unique_name": "variable_workflow_01VZ2Q38URQC92Nn8mZSbB1hRWDJQRawh3h",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
+          "scope": "local",
+          "name": "chart_data",
+          "type": "datatype.string",
+          "is_required": false,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01W00SNUQSDUV4CBIIujTJhTDhAtIT63K6Y",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "2980618",
+          "scope": "static",
+          "name": "Umbrella Organization ID",
+          "type": "datatype.string",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01VZ2NWI6H3UL1fLY8uJXnalcfOu4TSEoXA",
         "object_type": "variable_workflow"
       }
     ],
@@ -84,11 +97,7 @@
           "action_timeout": 180,
           "continue_on_failure": false,
           "display_name": "Get Top Browsers by Identity",
-          "script": "import json\nimport sys\nimport requests\n\nHEADERS = {\"content-type\": \"application/json\"}\nREPORTING_API_URL = \"https://reports.api.umbrella.com/v2\"\n\nORG_ID = \"$workflow.definition_workflow_01VYZKNLJGSIK0GsMNKhBYvhCiCSl279dum.static.variable_workflow_01VZ2NWI6H3UL1fLY8uJXnalcfOu4TSEoXA$\"\nACCESS_TOKEN = sys.argv[2]\nprint(f\"Parsed Access Token: {ACCESS_TOKEN}\")\n\nLIMIT_PER_REQUEST = 5000\n\n\ndef get_reporting_request(endpoint):\n    print(f\"Sending reporting request to {endpoint}...\")\n    HEADERS[\"Authorization\"] = f\"Bearer {ACCESS_TOKEN}\"\n    r = requests.get(REPORTING_API_URL + endpoint, headers=HEADERS)\n    body = json.loads(r.content)\n    print(f\"Found {len(body['data'])} records\")\n    return body\n\n\nidentity_browser_counts = {}\noffset = 0\nall_data = []\n\nwhile True:\n    r = get_reporting_request(\n        f\"/organizations/{ORG_ID}/activity/proxy?from=-$workflow.definition_workflow_01VYZKNLJGSIK0GsMNKhBYvhCiCSl279dum.static.variable_workflow_01VZ2Q38URQC92Nn8mZSbB1hRWDJQRawh3h$days\u0026to=now\u0026limit={LIMIT_PER_REQUEST}\u0026offset={offset}\",\n    )\n\n    data = r[\"data\"]\n    all_data.extend(data)\n\n    # No more data to parse :)\n    if len(data) \u003c LIMIT_PER_REQUEST:\n        break\n    else:\n        offset += LIMIT_PER_REQUEST\n\nfor request in all_data:\n    try:\n        # Only care about html requests\n        if request[\"contenttype\"] != \"text/html\":\n            continue\n        if request[\"useragent\"] and request[\"useragent\"].startswith(\"Mozilla\"):\n            # Parse the browser\n            if \"Firefox\" in request[\"useragent\"]:\n                browser = \"firefox\"\n            elif \"Edg/\" in request[\"useragent\"]:\n                browser = \"edge\"\n            elif \"Chrome\" in request[\"useragent\"]:\n                browser = \"chrome\"\n            elif (\n                \"Version/\" in request[\"useragent\"] and \"Safari\" in request[\"useragent\"]\n            ):\n                browser = \"safari\"\n            else:\n                browser = \"unknown\"\n                print(f\"Unknown browser: {request['useragent']}\")\n\n            existing_counts = identity_browser_counts.get(\n                request[\"identities\"][0][\"label\"], {}\n            )\n            existing_browser_count = existing_counts.get(browser, 0)\n\n            existing_browser_count += 1\n            existing_counts[browser] = existing_browser_count\n            identity_browser_counts[request[\"identities\"][0][\"label\"]] = existing_counts\n\n        else:\n            pass\n            # print(f\"Ignoring request to {request['url']}\")\n    except:\n        pass\n\n# Find primary browser\nprimary_browsers_by_user = {}\nbrowser_counts = {}\nfor identity, counts in identity_browser_counts.items():\n    primary_browser = max(counts, key=counts.get)\n    primary_browsers_by_user[identity] = primary_browser\n\nfor identity, browser in primary_browsers_by_user.items():\n    browser_counts[browser] = browser_counts.get(browser, 0) + 1\n\nidentity_table = [[\"Identity\", \"Top Browser\"]]\nfor identity, browser in primary_browsers_by_user.items():\n    identity_table.append([identity, browser])\n\nbrowser_table = [[\"Browser\", \"Users\"]]\nfor browser, users in browser_counts.items():\n    browser_table.append([browser, users])\n\nquickchart_data = (\n    \"\"\"{\n  type: 'bar',\n  data: {\n    labels: \"\"\"\n    + str(list(browser_counts.keys()))\n    + \"\"\",\n    datasets: [\n      {\n        label: 'Usage',\n        backgroundColor: 'rgba(255, 99, 132, 0.5)',\n        borderColor: 'rgb(255, 99, 132)',\n        borderWidth: 1,\n        data: \"\"\"\n    + str(list(browser_counts.values()))\n    + \"\"\",\n      }\n    ],\n  },\n  options: {\n    title: {\n      display: true,\n      text: 'Most Used Browser by Identity',\n    },\n    legend: {\n      display: false\n    },\n    plugins: {\n      datalabels: {\n        anchor: 'center',\n        align: 'center',\n        color: '#666',\n        font: {\n          weight: 'normal',\n        },\n      },\n    },\n  },\n}\"\"\"\n)",
-          "script_arguments": [
-            "",
-            "$activity.definition_activity_01VZ0BSAE7BGG1dUusqFu69U3hAJoLLdjc8.output.variable_workflow_01PP75D6AZ5UZ53AWQQ12vT5dEujYPUhe2x$"
-          ],
+          "script": "import json\nimport sys\nimport requests\n\nHEADERS = {\"content-type\": \"application/json\"}\nREPORTING_API_URL = \"https://reports.api.umbrella.com/v2\"\n\nORG_ID = \"$workflow.definition_workflow_01VYZKNLJGSIK0GsMNKhBYvhCiCSl279dum.static.variable_workflow_01VZ2NWI6H3UL1fLY8uJXnalcfOu4TSEoXA$\"\nACCESS_TOKEN = \"$activity.definition_activity_01VZ0BSAE7BGG1dUusqFu69U3hAJoLLdjc8.output.variable_workflow_01PP75D6AZ5UZ53AWQQ12vT5dEujYPUhe2x$\"\n\nLIMIT_PER_REQUEST = 5000\n\n\ndef get_reporting_request(endpoint):\n    print(f\"Sending reporting request to {endpoint}...\")\n    HEADERS[\"Authorization\"] = f\"Bearer {ACCESS_TOKEN}\"\n    r = requests.get(REPORTING_API_URL + endpoint, headers=HEADERS)\n    body = json.loads(r.content)\n    print(f\"Found {len(body['data'])} records\")\n    return body\n\n\nidentity_browser_counts = {}\noffset = 0\nall_data = []\n\nwhile True:\n    r = get_reporting_request(\n        f\"/organizations/{ORG_ID}/activity/proxy?from=-$workflow.definition_workflow_01VYZKNLJGSIK0GsMNKhBYvhCiCSl279dum.static.variable_workflow_01VZ2Q38URQC92Nn8mZSbB1hRWDJQRawh3h$days\u0026to=now\u0026limit={LIMIT_PER_REQUEST}\u0026offset={offset}\",\n    )\n\n    data = r[\"data\"]\n    all_data.extend(data)\n\n    # No more data to parse :)\n    if len(data) \u003c LIMIT_PER_REQUEST:\n        break\n    else:\n        offset += LIMIT_PER_REQUEST\n\nfor request in all_data:\n    try:\n        # Only care about html requests\n        if request[\"contenttype\"] != \"text/html\":\n            continue\n        if request[\"useragent\"] and request[\"useragent\"].startswith(\"Mozilla\"):\n            # Parse the browser\n            if \"Firefox\" in request[\"useragent\"]:\n                browser = \"firefox\"\n            elif \"Edg/\" in request[\"useragent\"]:\n                browser = \"edge\"\n            elif \"Chrome\" in request[\"useragent\"]:\n                browser = \"chrome\"\n            elif (\n                \"Version/\" in request[\"useragent\"] and \"Safari\" in request[\"useragent\"]\n            ):\n                browser = \"safari\"\n            else:\n                browser = \"unknown\"\n                print(f\"Unknown browser: {request['useragent']}\")\n\n            existing_counts = identity_browser_counts.get(\n                request[\"identities\"][0][\"label\"], {}\n            )\n            existing_browser_count = existing_counts.get(browser, 0)\n\n            existing_browser_count += 1\n            existing_counts[browser] = existing_browser_count\n            identity_browser_counts[request[\"identities\"][0][\"label\"]] = existing_counts\n\n        else:\n            pass\n            # print(f\"Ignoring request to {request['url']}\")\n    except:\n        pass\n\n# Find primary browser\nprimary_browsers_by_user = {}\nbrowser_counts = {}\nfor identity, counts in identity_browser_counts.items():\n    primary_browser = max(counts, key=counts.get)\n    primary_browsers_by_user[identity] = primary_browser\n\nfor identity, browser in primary_browsers_by_user.items():\n    browser_counts[browser] = browser_counts.get(browser, 0) + 1\n\nidentity_table = [[\"Identity\", \"Top Browser\"]]\nfor identity, browser in primary_browsers_by_user.items():\n    identity_table.append([identity, browser])\n\nbrowser_table = [[\"Browser\", \"Users\"]]\nfor browser, users in browser_counts.items():\n    browser_table.append([browser, users])\n\nquickchart_data = (\n    \"\"\"{\n  type: 'bar',\n  data: {\n    labels: \"\"\"\n    + str(list(browser_counts.keys()))\n    + \"\"\",\n    datasets: [\n      {\n        label: 'Usage',\n        backgroundColor: 'rgba(255, 99, 132, 0.5)',\n        borderColor: 'rgb(255, 99, 132)',\n        borderWidth: 1,\n        data: \"\"\"\n    + str(list(browser_counts.values()))\n    + \"\"\",\n      }\n    ],\n  },\n  options: {\n    title: {\n      display: true,\n      text: 'Most Used Browser by Identity',\n    },\n    legend: {\n      display: false\n    },\n    plugins: {\n      datalabels: {\n        anchor: 'center',\n        align: 'center',\n        color: '#666',\n        font: {\n          weight: 'normal',\n        },\n      },\n    },\n  },\n}\"\"\"\n)",
           "script_queries": [
             {
               "script_query": "identity_table",
@@ -124,7 +133,7 @@
             "variable_workflow_01S25O1ZRXWMP0tHGDsz4z7np2TF6iRLWfa": "",
             "variable_workflow_01S25O1ZRYDDC1CPjvy8yM8TZpnPQ75QTeQ": "",
             "variable_workflow_01S25O1ZRYNA61gCzmzpq7Xmx5KRtlxgRsI": "Y2lzY29zcGFyazovL3VzL1JPT00vMWFiMTNjNDAtMjcwNy0xMWVjLThlMmMtY2Y0MTZmNzdjMTFi",
-            "variable_workflow_01VZ0IBCGPG364sYnzP9O65xOjKo2Ee9U5J": "$activity.definition_activity_01VYZKYR4FM8C2ioHS4k2DhYXX8O8fuYtJy.output.script_queries.quickchart_data$"
+            "variable_workflow_01W00VJXNTHL91tmHSELSZaQ2tbQsFcBaR3": "$activity.definition_activity_01VYZKYR4FM8C2ioHS4k2DhYXX8O8fuYtJy.output.script_queries.quickchart_data$"
           },
           "runtime_user": {
             "target_default": true
