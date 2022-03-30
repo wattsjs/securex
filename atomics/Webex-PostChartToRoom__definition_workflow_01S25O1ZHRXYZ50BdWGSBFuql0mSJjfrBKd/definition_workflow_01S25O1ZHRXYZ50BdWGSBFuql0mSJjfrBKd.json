@@ -10,6 +10,20 @@
         "schema_id": "datatype.string",
         "properties": {
           "value": "",
+          "scope": "input",
+          "name": "Markdown Message",
+          "type": "datatype.string",
+          "description": "A message that includes markdown. If you provide a value for this field as well as the message field, the markdown message will be displayed for clients that support it and the plain text message will be shown for clients that don't\n\nInformation about formatting messages: https://developer.webex.com/docs/api/basics#formatting-messages",
+          "is_required": false,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01S25O1ZRXWMP0tHGDsz4z7np2TF6iRLWfa",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "",
           "scope": "output",
           "name": "Response Body",
           "type": "datatype.string",
@@ -17,20 +31,6 @@
           "is_invisible": false
         },
         "unique_name": "variable_workflow_01S25O1ZRY4704dtq74c3ns2zebEw9ajEBW",
-        "object_type": "variable_workflow"
-      },
-      {
-        "schema_id": "datatype.string",
-        "properties": {
-          "value": "",
-          "scope": "input",
-          "name": "Room ID",
-          "type": "datatype.string",
-          "description": "The ID of the room to post the message to",
-          "is_required": true,
-          "is_invisible": false
-        },
-        "unique_name": "variable_workflow_01S25O1ZRYNA61gCzmzpq7Xmx5KRtlxgRsI",
         "object_type": "variable_workflow"
       },
       {
@@ -65,13 +65,13 @@
         "properties": {
           "value": "",
           "scope": "input",
-          "name": "Markdown Message",
+          "name": "Room ID",
           "type": "datatype.string",
-          "description": "A message that includes markdown. If you provide a value for this field as well as the message field, the markdown message will be displayed for clients that support it and the plain text message will be shown for clients that don't\n\nInformation about formatting messages: https://developer.webex.com/docs/api/basics#formatting-messages",
-          "is_required": false,
+          "description": "The ID of the room to post the message to",
+          "is_required": true,
           "is_invisible": false
         },
-        "unique_name": "variable_workflow_01S25O1ZRXWMP0tHGDsz4z7np2TF6iRLWfa",
+        "unique_name": "variable_workflow_01S25O1ZRYNA61gCzmzpq7Xmx5KRtlxgRsI",
         "object_type": "variable_workflow"
       },
       {
@@ -98,7 +98,7 @@
           "is_required": true,
           "is_invisible": false
         },
-        "unique_name": "variable_workflow_01VZ0IBCGPG364sYnzP9O65xOjKo2Ee9U5J",
+        "unique_name": "variable_workflow_01W00VJXNTHL91tmHSELSZaQ2tbQsFcBaR3",
         "object_type": "variable_workflow"
       }
     ],
@@ -137,7 +137,7 @@
             "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01S25O1ZRYNA61gCzmzpq7Xmx5KRtlxgRsI$",
             "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01S25O1ZRYDDC1CPjvy8yM8TZpnPQ75QTeQ$",
             "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01S25O1ZRXWMP0tHGDsz4z7np2TF6iRLWfa$",
-            "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01VZ0IBCGPG364sYnzP9O65xOjKo2Ee9U5J$"
+            "$workflow.definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd.input.variable_workflow_01W00VJXNTHL91tmHSELSZaQ2tbQsFcBaR3$"
           ],
           "script_queries": [
             {
