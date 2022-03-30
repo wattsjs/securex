@@ -1,0 +1,263 @@
+{
+  "workflow": {
+    "unique_name": "definition_workflow_01VZ5EVA3X8GU55IA5VUBxUQ4wxF5ifWAVD",
+    "name": "Umbrella - Get User Productivity",
+    "title": "Umbrella - Get User Productivity",
+    "type": "generic.workflow",
+    "base_type": "workflow",
+    "variables": [
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "2980618",
+          "scope": "static",
+          "name": "Umbrella Organization ID",
+          "type": "datatype.string",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01VZ5HRRHLDOD5l91rQCEqhtPBffm56RGVD",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "30",
+          "scope": "static",
+          "name": "Days to Search",
+          "type": "datatype.string",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01VZ5H6OV6PLD0FL1FKTaIzcHyuN4nNan0i",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "[\"Streaming\", \"Social\", \"Shopping\"]",
+          "scope": "local",
+          "name": "Tracked Categories",
+          "type": "datatype.string",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01W03J35V62WE2jr33NZaeeLV5zqoLADKLa",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "5",
+          "scope": "static",
+          "name": "Alert Threshold",
+          "type": "datatype.string",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01W035BJA18QN5jLuwwxwA7yoy9gUdQ3hiT",
+        "object_type": "variable_workflow"
+      }
+    ],
+    "properties": {
+      "atomic": {
+        "is_atomic": false
+      },
+      "delete_workflow_instance": false,
+      "description": "Estimates a users productivity by inspecting Umbrella SWG logs",
+      "display_name": "Umbrella - Get User Productivity",
+      "runtime_user": {
+        "target_default": true
+      },
+      "target": {
+        "no_target": true
+      }
+    },
+    "object_type": "definition_workflow",
+    "actions": [
+      {
+        "unique_name": "definition_activity_01VZ5I4S378CA5mTZrs3zpBBzKNVug2VqlD",
+        "name": "Umbrella - Reporting v2 - Get Token",
+        "title": "Umbrella - Reporting v2 - Get Token",
+        "type": "workflow.atomic_workflow",
+        "base_type": "subworkflow",
+        "properties": {
+          "continue_on_failure": false,
+          "display_name": "Umbrella - Reporting v2 - Get Token",
+          "runtime_user": {
+            "target_default": true
+          },
+          "skip_execution": false,
+          "target": {
+            "override_workflow_target": true,
+            "target_id": "definition_target_01O14QPP1R7Y54NumOY4dNklNHbOJkleR1P",
+            "target_type": "web-service.endpoint"
+          },
+          "workflow_id": "definition_workflow_01PP75D6GJ0002MvUF1kmECjGTE8Ps6WiaC"
+        },
+        "object_type": "definition_activity"
+      },
+      {
+        "unique_name": "definition_activity_01VZ5F2V63ORU5vqR4lafVOViAQOcJQUWGV",
+        "name": "Execute Python Script",
+        "title": "Execute Python Script",
+        "type": "python3.script",
+        "base_type": "activity",
+        "properties": {
+          "action_timeout": 180,
+          "continue_on_failure": false,
+          "display_name": "Execute Python Script",
+          "script": "import json\nimport sys\nimport requests\nfrom datetime import datetime\n\nHEADERS = {\"content-type\": \"application/json\"}\nREPORTING_API_URL = \"https://reports.api.umbrella.com/v2\"\n\nORG_ID = sys.argv[2]\nACCESS_TOKEN = sys.argv[1]\n\nLIMIT_PER_REQUEST = 5000\nDAYS_AGO = int(sys.argv[3])\nALERT_THRESHOLD = int(sys.argv[4])\n\nCONTENT_TYPES = [\"text/html\"]\nTRACKED_CATEGORIES = json.loads(sys.argv[5])\n\ndef get_reporting_request(endpoint):\n    print(f\"Sending reporting request to {endpoint}...\")\n    HEADERS[\"Authorization\"] = f\"Bearer {ACCESS_TOKEN}\"\n    r = requests.get(REPORTING_API_URL + endpoint, headers=HEADERS)\n    body = json.loads(r.content)\n    print(f\"Found {len(body['data'])} records\")\n    return body\n\n\noffset = 0\nall_data = []\n\nwhile True:\n    r = get_reporting_request(\n        f\"/organizations/{ORG_ID}/activity/proxy?from=-{DAYS_AGO}days\u0026to=now\u0026limit={LIMIT_PER_REQUEST}\u0026offset={offset}\",\n    )\n\n    data = r[\"data\"]\n    all_data.extend(data)\n\n    # No more data to parse :)\n    if len(data) \u003c LIMIT_PER_REQUEST:\n        break\n    else:\n        offset += LIMIT_PER_REQUEST\nprint(f\"Found {len(all_data)} total records\")\n\ntracked_category_counts = {}\n\nfor request in all_data:\n    # Only care about html requests\n    if request[\"contenttype\"] not in CONTENT_TYPES:\n        continue\n\n    # Only track requests from tracked categories\n    track_request = False\n    for category in request[\"categories\"]:\n        for tracked_category in TRACKED_CATEGORIES:\n            if tracked_category in category[\"label\"]:\n                matched_category = category[\"label\"]\n                track_request = True\n                break\n        if track_request:\n            break\n    if not track_request:\n        continue\n\n    # Only care about requests in a unique block\n    ts = datetime.fromtimestamp(request[\"timestamp\"] / 1000).replace(second=0)\n    identity = request[\"identities\"][0][\"label\"]\n\n    identity_tracked = tracked_category_counts.get(identity, {})\n    if not identity_tracked:\n        tracked_category_counts[identity] = identity_tracked\n\n    block_tracked = identity_tracked.get(matched_category, [])\n\n    # Only add if in a unique minute\n    if ts not in block_tracked:\n        block_tracked.append(ts)\n        identity_tracked[matched_category] = block_tracked\n\n# Calculate stats (in minutes)\ncategory_totals = {}\nidentity_totals = {}\n\nfor identity, tracked_category_count in tracked_category_counts.items():\n    for category, counts in tracked_category_count.items():\n        category_total = len(counts)\n        category_totals[category] = category_totals.get(category, 0) + category_total\n        user_totals = identity_totals.get(identity, {})\n        user_totals[category] = category_total\n        identity_totals[identity] = user_totals\n\nalert_categories = {}\n\nfor identity, i_category_totals in identity_totals.items():\n    for category, total in i_category_totals.items():\n        print(f\"{identity} has spent {total} minutes on {category} over the last {DAYS_AGO} days\")\n        if total \u003e ALERT_THRESHOLD:\n            \n            alerts = alert_categories.get(category, [[\"User\", \"Minutes\"]])\n            alerts.append([identity, total])\n            alert_categories[category] = alerts\n\nquickchart_data = (\n    \"\"\"\n{\n  type: 'bar',\n  data: {\n    labels: \"\"\"\n    + str(list(category_totals.keys()))\n    + \"\"\",\n    datasets: [\n      {\n        label: 'Usage',\n        backgroundColor: 'rgba(255, 99, 132, 0.5)',\n        borderColor: 'rgb(255, 99, 132)',\n        borderWidth: 1,\n        data: \"\"\"\n    + str(list(category_totals.values()))\n    + \"\"\",\n      }\n    ],\n  },\n  options: {\n    title: {\n      display: true,\n      text: 'Minutes Spent Over the Last \"\"\"\n    + str(DAYS_AGO)\n    + \"\"\" Days',\n    },\n    legend: {\n      display: false\n    },\n    plugins: {\n      datalabels: {\n        anchor: 'center',\n        align: 'center',\n        color: '#666',\n        font: {\n          weight: 'normal',\n        },\n      },\n    },\n    scales: {\n      yAxes: [\n        {\n          scaleLabel: {\n            display: true,\n            labelString: 'Minutes',\n          },\n          ticks: {\n            min: 0,\n          }\n        }\n      ]\n    }\n  },\n}\"\"\"\n)\n\nalert_markdown = f\"**Users with more than {ALERT_THRESHOLD} minutes spent on tracked categories over the last {DAYS_AGO} days**\\n\\n\"\n\nfor alert_category, alerts in alert_categories.items():\n    alert_markdown += f\"**{alert_category}**\\n\"\n    # First item is the header\n    for alert in alerts[1:]:\n        alert_markdown += f\"* {alert[0]}: {alert[1]} minutes\\n\"\n    alert_markdown += \"\\n\"",
+          "script_arguments": [
+            "$activity.definition_activity_01VZ5I4S378CA5mTZrs3zpBBzKNVug2VqlD.output.variable_workflow_01PP75D6AZ5UZ53AWQQ12vT5dEujYPUhe2x$",
+            "$workflow.definition_workflow_01VZ5EVA3X8GU55IA5VUBxUQ4wxF5ifWAVD.static.variable_workflow_01VZ5HRRHLDOD5l91rQCEqhtPBffm56RGVD$",
+            "$workflow.definition_workflow_01VZ5EVA3X8GU55IA5VUBxUQ4wxF5ifWAVD.static.variable_workflow_01VZ5H6OV6PLD0FL1FKTaIzcHyuN4nNan0i$",
+            "$workflow.definition_workflow_01VZ5EVA3X8GU55IA5VUBxUQ4wxF5ifWAVD.static.variable_workflow_01W035BJA18QN5jLuwwxwA7yoy9gUdQ3hiT$",
+            "$workflow.definition_workflow_01VZ5EVA3X8GU55IA5VUBxUQ4wxF5ifWAVD.local.variable_workflow_01W03J35V62WE2jr33NZaeeLV5zqoLADKLa$"
+          ],
+          "script_queries": [
+            {
+              "script_query": "quickchart_data",
+              "script_query_name": "quickchart_data",
+              "script_query_type": "secure_string"
+            },
+            {
+              "script_query": "alert_markdown",
+              "script_query_name": "alert_markdown",
+              "script_query_type": "secure_string"
+            }
+          ],
+          "skip_execution": false
+        },
+        "object_type": "definition_activity"
+      },
+      {
+        "unique_name": "definition_activity_01W01FMWXMPMC63XtSwa7RLrph0r3eRHDlI",
+        "name": "Webex Teams - Post Chart to Room",
+        "title": "Webex Teams - Post Chart to Room",
+        "type": "workflow.atomic_workflow",
+        "base_type": "subworkflow",
+        "properties": {
+          "continue_on_failure": false,
+          "display_name": "Webex Teams - Post Chart to Room",
+          "input": {
+            "variable_workflow_01S25O1ZRXDEU3DVB122QjiWBBC2q0Vv4jt": "$global.variable_01VYAYSQ1RT7A17h9Hxvk2EvhXPDqQDdNpk.global.variable_01VYAYSQ1RT7A17h9Hxvk2EvhXPDqQDdNpk$",
+            "variable_workflow_01S25O1ZRXWMP0tHGDsz4z7np2TF6iRLWfa": "",
+            "variable_workflow_01S25O1ZRYDDC1CPjvy8yM8TZpnPQ75QTeQ": "",
+            "variable_workflow_01S25O1ZRYNA61gCzmzpq7Xmx5KRtlxgRsI": "$global.variable_01VZ3V3ETRVDG6PAEHaiv04zvoMWXIlg9j2.global.variable_01VZ3V3ETRVDG6PAEHaiv04zvoMWXIlg9j2$",
+            "variable_workflow_01W00VJXNTHL91tmHSELSZaQ2tbQsFcBaR3": "$activity.definition_activity_01VZ5F2V63ORU5vqR4lafVOViAQOcJQUWGV.output.script_queries.quickchart_data$",
+            "variable_workflow_01W01M1ULZEIL5d5XnIM295RsKdpsxrXvaN": "$activity.definition_activity_01VZ5F2V63ORU5vqR4lafVOViAQOcJQUWGV.output.script_queries.alert_markdown$"
+          },
+          "runtime_user": {
+            "target_default": true
+          },
+          "skip_execution": false,
+          "target": {
+            "override_workflow_target": true,
+            "target_id": "definition_target_01KV763JKI9E16UBg5fc3NdrMG4Js22yRVf",
+            "target_type": "web-service.endpoint"
+          },
+          "workflow_id": "definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd"
+        },
+        "object_type": "definition_activity"
+      }
+    ],
+    "categories": [
+      "category_01RVTSC87LDQ12jI3vOwgaK2tYCRd6YpRb9"
+    ]
+  },
+  "categories": {
+    "category_01RVTSC87LDQ12jI3vOwgaK2tYCRd6YpRb9": {
+      "unique_name": "category_01RVTSC87LDQ12jI3vOwgaK2tYCRd6YpRb9",
+      "name": "umbrella",
+      "title": "umbrella",
+      "type": "basic.category",
+      "base_type": "category",
+      "category_type": "custom",
+      "object_type": "category"
+    }
+  },
+  "targets": {
+    "definition_target_01KV763JKI9E16UBg5fc3NdrMG4Js22yRVf": {
+      "unique_name": "definition_target_01KV763JKI9E16UBg5fc3NdrMG4Js22yRVf",
+      "name": "Webex Teams",
+      "title": "Webex Teams",
+      "type": "web-service.endpoint",
+      "base_type": "target",
+      "object_type": "definition_target",
+      "properties": {
+        "description": "Webex Teams",
+        "disable_certificate_validation": false,
+        "display_name": "Webex Teams",
+        "host": "webexapis.com",
+        "no_runtime_user": true,
+        "port": 443,
+        "protocol": "https"
+      }
+    },
+    "definition_target_01O14QPP1R7Y54NumOY4dNklNHbOJkleR1P": {
+      "unique_name": "definition_target_01O14QPP1R7Y54NumOY4dNklNHbOJkleR1P",
+      "name": "Umbrella_Management",
+      "title": "Umbrella_Management",
+      "type": "web-service.endpoint",
+      "base_type": "target",
+      "object_type": "definition_target",
+      "properties": {
+        "default_runtime_user_id": "definition_runtime_user_01LYILXLEM4BC0aSiiuihT10xbZpWxLxGO3",
+        "description": "DevNet APJC Challenge-Auth endpoint",
+        "disable_certificate_validation": false,
+        "display_name": "Umbrella_Management",
+        "host": "management.api.umbrella.com",
+        "ignore_proxy": false,
+        "no_runtime_user": false,
+        "protocol": "https"
+      }
+    }
+  },
+  "runtime_users": {
+    "definition_runtime_user_01LYILXLEM4BC0aSiiuihT10xbZpWxLxGO3": {
+      "unique_name": "definition_runtime_user_01LYILXLEM4BC0aSiiuihT10xbZpWxLxGO3",
+      "name": "Umbrella_Management_Credentials",
+      "title": "Umbrella_Management_Credentials",
+      "type": "runtime_user.web-service_basic_credentials",
+      "base_type": "runtime_user",
+      "object_type": "definition_runtime_user",
+      "properties": {
+        "auth_option": "*****",
+        "basic_password": "*****",
+        "basic_username": "*****",
+        "display_name": "Umbrella_Management_Credentials"
+      }
+    }
+  },
+  "variables": {
+    "variable_01VYAYSQ1RT7A17h9Hxvk2EvhXPDqQDdNpk": {
+      "unique_name": "variable_01VYAYSQ1RT7A17h9Hxvk2EvhXPDqQDdNpk",
+      "properties": {
+        "value": "*****",
+        "scope": "global",
+        "name": "SecureX Assistant Webex Token",
+        "type": "datatype.secure_string",
+        "is_required": false,
+        "is_invisible": false
+      },
+      "object_type": "variable"
+    },
+    "variable_01VZ3V3ETRVDG6PAEHaiv04zvoMWXIlg9j2": {
+      "unique_name": "variable_01VZ3V3ETRVDG6PAEHaiv04zvoMWXIlg9j2",
+      "properties": {
+        "value": "Y2lzY29zcGFyazovL3VzL1JPT00vMWFiMTNjNDAtMjcwNy0xMWVjLThlMmMtY2Y0MTZmNzdjMTFi",
+        "scope": "global",
+        "name": "Webex Room - Umbrella Alerts",
+        "type": "datatype.string",
+        "is_required": false,
+        "is_invisible": false
+      },
+      "object_type": "variable"
+    }
+  },
+  "atomic_workflows": [
+    "definition_workflow_01S25O1ZHRXYZ50BdWGSBFuql0mSJjfrBKd",
+    "definition_workflow_01PP75D6GJ0002MvUF1kmECjGTE8Ps6WiaC"
+  ]
+}
