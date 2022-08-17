@@ -1,3 +1,5 @@
+![End Result](../media/mcas_sync.png?raw=true)
+
 ## Overview
 This SecureX workflow allows you to syncronise your existing sanctioned applications in Microsoft Defender for Cloud Apps (formally known as MCAS) with an Umbrella DNS destination list.
 
