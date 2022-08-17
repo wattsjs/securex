@@ -45,5 +45,3 @@ In order to enforce the blocking of these domains, you will need to use the dest
 Any questions related to this workflow you can reach out to me at:
 
 Jamie Watts - jamiwatt@cisco.com
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
