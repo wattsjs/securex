@@ -11,47 +11,9 @@
         "properties": {
           "value": "*****",
           "scope": "static",
-          "name": "UMBRELLA_MANAGEMENT_SECRET",
-          "type": "datatype.secure_string",
-          "is_required": true,
-          "is_invisible": false
-        },
-        "unique_name": "variable_workflow_01ZA7J5TUMUKD77Uafix7sF954jEJJqoknJ",
-        "object_type": "variable_workflow"
-      },
-      {
-        "schema_id": "datatype.secure_string",
-        "properties": {
-          "value": "*****",
-          "scope": "static",
-          "name": "CLIENT_SECRET",
-          "type": "datatype.secure_string",
-          "is_required": true,
-          "is_invisible": false
-        },
-        "unique_name": "variable_workflow_01ZA7FTAKRSM61f7VaR3cBJGPDPwbyYhcCe",
-        "object_type": "variable_workflow"
-      },
-      {
-        "schema_id": "datatype.string",
-        "properties": {
-          "value": "MCAS Sanctioned Applications - Blocked",
-          "scope": "input",
-          "name": "UMBRELLA_DESTINATION_LIST",
-          "type": "datatype.string",
-          "is_required": true,
-          "is_invisible": false
-        },
-        "unique_name": "variable_workflow_01ZA7G5449QNT4EAOiZNtCtanJn3z64qifC",
-        "object_type": "variable_workflow"
-      },
-      {
-        "schema_id": "datatype.secure_string",
-        "properties": {
-          "value": "*****",
-          "scope": "static",
           "name": "UMBRELLA_MANAGEMENT_KEY",
           "type": "datatype.secure_string",
+          "description": "Umbrella Management API key created within the Umbrella console",
           "is_required": true,
           "is_invisible": false
         },
@@ -65,6 +27,7 @@
           "scope": "static",
           "name": "CLIENT_ID",
           "type": "datatype.secure_string",
+          "description": "CLIENT_ID for the application context to access the Defender for Cloud Apps API",
           "is_required": true,
           "is_invisible": false
         },
@@ -76,12 +39,27 @@
         "properties": {
           "value": "*****",
           "scope": "static",
-          "name": "PORTAL_URL",
+          "name": "UMBRELLA_MANAGEMENT_SECRET",
           "type": "datatype.secure_string",
+          "description": "Umbrella Management API secret created within the Umbrella console",
           "is_required": true,
           "is_invisible": false
         },
-        "unique_name": "variable_workflow_01ZA7MJJMK67T24pQx7vVo8CbChDNYztxlm",
+        "unique_name": "variable_workflow_01ZA7J5TUMUKD77Uafix7sF954jEJJqoknJ",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.string",
+        "properties": {
+          "value": "MCAS Sanctioned Applications - Blocked",
+          "scope": "input",
+          "name": "UMBRELLA_DESTINATION_LIST",
+          "type": "datatype.string",
+          "description": "The Umbrella destination list that is used to syncronise sanctioned application domains.\n\nYou may change this to anything you wish and it will be automatically created.",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01ZA7G5449QNT4EAOiZNtCtanJn3z64qifC",
         "object_type": "variable_workflow"
       },
       {
@@ -91,6 +69,7 @@
           "scope": "static",
           "name": "UMBRELLA_ORG_ID",
           "type": "datatype.secure_string",
+          "description": "Umbrella tenant organisation ID\n\nCan be found within the URL path of your Umbrella dashboard - it is a 7 digit number",
           "is_required": true,
           "is_invisible": false
         },
@@ -102,8 +81,37 @@
         "properties": {
           "value": "*****",
           "scope": "static",
+          "name": "CLIENT_SECRET",
+          "type": "datatype.secure_string",
+          "description": "CLIENT_SECRET for the application context to access the Defender for Cloud Apps API",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01ZA7FTAKRSM61f7VaR3cBJGPDPwbyYhcCe",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.secure_string",
+        "properties": {
+          "value": "*****",
+          "scope": "static",
+          "name": "PORTAL_URL",
+          "type": "datatype.secure_string",
+          "description": "PORTAL_URL of your Defender for Cloud Apps tenant",
+          "is_required": true,
+          "is_invisible": false
+        },
+        "unique_name": "variable_workflow_01ZA7MJJMK67T24pQx7vVo8CbChDNYztxlm",
+        "object_type": "variable_workflow"
+      },
+      {
+        "schema_id": "datatype.secure_string",
+        "properties": {
+          "value": "*****",
+          "scope": "static",
           "name": "TENANT_ID",
           "type": "datatype.secure_string",
+          "description": "TENANT_ID for the application context to access the Defender for Cloud Apps API",
           "is_required": true,
           "is_invisible": false
         },
@@ -156,41 +164,6 @@
       "base_type": "category",
       "category_type": "custom",
       "object_type": "category"
-    }
-  },
-  "triggers": {
-    "triggerschedule_01ZA7BKQ25COE0FpSZMsaHe9qQ9LOqmWlYJ": {
-      "workflow_id": "definition_workflow_01ZA78KI6QSLC6gcXhudQZDRoakc3qqNwkC",
-      "name": "Every 30 Minutes",
-      "title": "",
-      "lowercase_name": "schedule.every_30_minutes",
-      "type": "schedule",
-      "base_type": "trigger",
-      "ref_id": "schedule_01ZA7BFU95PHD33ER9DHzDSJOFy78A2nNk4",
-      "version": "1.0.0",
-      "disabled": false,
-      "unique_name": "triggerschedule_01ZA7BKQ25COE0FpSZMsaHe9qQ9LOqmWlYJ",
-      "object_type": "triggerschedule"
-    }
-  },
-  "schedules": {
-    "schedule_01ZA7BFU95PHD33ER9DHzDSJOFy78A2nNk4": {
-      "unique_name": "schedule_01ZA7BFU95PHD33ER9DHzDSJOFy78A2nNk4",
-      "name": "Every 30 minutes",
-      "type": "basic.schedule",
-      "base_type": "schedule",
-      "properties": {
-        "calendar": "calendar_recurring_1BMfMWvgiDhSjBQ7hTSyvz3NyVZ",
-        "timezone": "Australia/Brisbane",
-        "starttime": "00:00",
-        "interval_hours": 0,
-        "interval_minutes": 30,
-        "number_of_times": 48,
-        "display_name": "Every 30 minutes",
-        "description": ""
-      },
-      "version": "1.0.0",
-      "object_type": "schedule"
     }
   }
 }
