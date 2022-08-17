@@ -3,8 +3,6 @@ This SecureX workflow allows you to syncronise your existing sanctioned applicat
 
 Microsoft provides a REST API of all domains associated with your sanctioned applications, and this workflow will syncronise these domains with a destination list in Cisco Umbrella - allowing you to block access to these sanctioned applications at a DNS level across your entire organisation.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
@@ -28,8 +26,6 @@ This is an example of how to list things you need to use the software and how to
    1. The simplest way is to manually import [this workflow](https://raw.githubusercontent.com/wattsjs/securex/main/workflows/Umbrella-SyncMicrosoftDefenderForCloudApps__definition_workflow_01ZA78KI6QSLC6gcXhudQZDRoakc3qqNwkC/definition_workflow_01ZA78KI6QSLC6gcXhudQZDRoakc3qqNwkC.json) into your SecureX Orchestration instance via the `Import Workflow` button in the dashboard, then select the `Browse` tab and paste the contents of the json workflow file
    2. Alternatively, you may [setup this repository as a Git Repo](https://ciscosecurity-sx-00-integration-workflows.readthedocs-hosted.com/en/latest/orchestration/import_export.html#importing-from-git) inside your SecureX instance in order to enable future updates
 6. Configure the relevant workflow variables according to the values noted earlier for `CLIENT_ID`, `CLIENT_SECRET`, `PORTAL_URL`, `TENANT_ID`, `UMBRELLA_MANAGEMENT_KEY`, `UMBRELLA_MANAGEMENT_SECRET`, and `UMBRELLA_ORG_ID`
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
